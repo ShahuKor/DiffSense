@@ -1,0 +1,59 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [pgvector(map: "vector")]
+}
+
+enum JobStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
+enum PatternType {
+  bug
+  security
+  style
+  logic
+  test_coverage
+}
+
+enum FeedbackType {
+  accepted
+  dismissed
+}
+
+model ReviewJob {
+  id           String    @id @default(uuid())
+  prId         String    @map("pr_id")
+  repoFullName String    @map("repo_full_name")
+  prNumber     Int       @map("pr_number")
+  installationId Int     @map("installation_id")
+  headSha      String    @map("head_sha")
+  status       JobStatus @default(pending)
+  createdAt    DateTime  @default(now()) @map("created_at")
+  completedAt  DateTime? @map("completed_at")
+  error        String?
+
+  @@map("review_jobs")
+}
+
+model ReviewComment {
+  id             String       @id @default(uuid())
+  repoFullName   String       @map("repo_full_name")
+  filePath       String       @map("file_path")
+  patternType    PatternType  @map("pattern_type")
+  commentText    String       @map("comment_text")
+  // pgvector column — managed via raw SQL migration, not Prisma type
+  feedback       FeedbackType?
+  feedbackWeight Float        @default(0.5) @map("feedback_weight")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  @@map("review_comments")
+}

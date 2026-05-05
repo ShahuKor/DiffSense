@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: reviewbot
+      POSTGRES_PASSWORD: reviewbot
+      POSTGRES_DB: reviewbot
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  app:
+    build: .
+    depends_on:
+      - postgres
+      - redis
+    env_file: .env
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: postgresql://reviewbot:reviewbot@postgres:5432/reviewbot
+      REDIS_URL: redis://redis:6379
+
+volumes:
+  postgres_data:
