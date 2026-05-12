@@ -50,7 +50,7 @@ model ReviewComment {
   filePath       String       @map("file_path")
   patternType    PatternType  @map("pattern_type")
   commentText    String       @map("comment_text")
-  // pgvector column — managed via raw SQL migration, not Prisma type
+  embedding      Unsupported("vector(1536)")?
   feedback       FeedbackType?
   feedbackWeight Float        @default(0.5) @map("feedback_weight")
   createdAt      DateTime     @default(now()) @map("created_at")

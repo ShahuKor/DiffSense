@@ -1,6 +1,5 @@
 import { prisma } from '../db/client';
 import { embedText } from './embed';
-import { EMBEDDING_DIMENSIONS } from '../shared/constants';
 
 interface SimilarReview {
   commentText: string;
@@ -11,24 +10,27 @@ interface SimilarReview {
 export async function searchSimilarReviews(
   query: string,
   repoFullName: string,
-  limit = 5
+  limit = 5,
 ): Promise<SimilarReview[]> {
-  const queryEmbedding = await embedText(query);
-  const vectorLiteral = `[${queryEmbedding.join(',')}]`;
+  const embedding = await embedText(query);
+  const vectorLiteral = `[${embedding.join(',')}]`;
 
-  // Cosine similarity search via pgvector <=> operator, filtered by repo and
-  // weighted by feedback_weight so dismissed patterns rank lower.
-  const rows = await prisma.$queryRaw<SimilarReview[]>`
-    SELECT
-      comment_text   AS "commentText",
-      pattern_type   AS "patternType",
-      feedback_weight AS "feedbackWeight"
-    FROM review_comments
-    WHERE repo_full_name = ${repoFullName}
-    ORDER BY
-      (embedding <=> ${vectorLiteral}::vector(${EMBEDDING_DIMENSIONS})) / feedback_weight ASC
-    LIMIT ${limit}
-  `;
+  // Cosine distance via pgvector <=> operator.
+  // Divide by feedback_weight so dismissed patterns (low weight) rank lower.
+  const rows = await prisma.$queryRawUnsafe<SimilarReview[]>(
+    `SELECT
+       comment_text    AS "commentText",
+       pattern_type    AS "patternType",
+       feedback_weight AS "feedbackWeight"
+     FROM review_comments
+     WHERE repo_full_name = $1
+       AND embedding IS NOT NULL
+     ORDER BY (embedding <=> $2::vector) / NULLIF(feedback_weight, 0) ASC
+     LIMIT $3`,
+    repoFullName,
+    vectorLiteral,
+    limit,
+  );
 
   return rows;
 }

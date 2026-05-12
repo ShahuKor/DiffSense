@@ -6,7 +6,7 @@ export const CONFIDENCE_THRESHOLD = 0.7;
 
 export const EMBEDDING_DIMENSIONS = 1536;
 
-export const CLAUDE_MODEL = 'claude-sonnet-4-20250514';
+export const CLAUDE_MODEL = 'claude-sonnet-4-5';
 
 export const GITHUB_EVENTS = {
   PULL_REQUEST: 'pull_request',

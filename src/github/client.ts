@@ -2,15 +2,20 @@ import { App } from '@octokit/app';
 import { Octokit } from '@octokit/rest';
 import { FileDiff, FileDiffHunk } from '../shared/types';
 
-let appInstance: App | null = null;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let appInstance: App<any> | null = null;
 
-function getApp(): App {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getApp(): App<any> {
   if (!appInstance) {
     const privateKey = process.env.GITHUB_PRIVATE_KEY!.replace(/\\n/g, '\n');
     appInstance = new App({
       appId: process.env.GITHUB_APP_ID!,
       privateKey,
       webhooks: { secret: process.env.GITHUB_WEBHOOK_SECRET! },
+      // Inject @octokit/rest so installation octokits have REST convenience methods.
+      // @octokit/app defaults to @octokit/core which lacks pulls.listFiles etc.
+      Octokit: Octokit as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     });
   }
   return appInstance;
