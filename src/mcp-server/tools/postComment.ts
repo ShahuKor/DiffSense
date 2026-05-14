@@ -36,7 +36,7 @@ export async function postComment(
   }
 
   const formattedBody = `**[${input.severity}]** ${input.body}`;
-  await postInlineComment(
+  const githubCommentId = await postInlineComment(
     ctx.octokit,
     ctx.owner,
     ctx.repo,
@@ -52,6 +52,7 @@ export async function postComment(
     filePath: input.path,
     commentText: input.body,
     patternType: severityToPatternType(input.severity),
+    githubCommentId,
   });
 
   return { posted: true };

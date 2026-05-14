@@ -49,11 +49,12 @@ model ReviewComment {
   repoFullName   String       @map("repo_full_name")
   filePath       String       @map("file_path")
   patternType    PatternType  @map("pattern_type")
-  commentText    String       @map("comment_text")
-  embedding      Unsupported("vector(1536)")?
-  feedback       FeedbackType?
-  feedbackWeight Float        @default(0.5) @map("feedback_weight")
-  createdAt      DateTime     @default(now()) @map("created_at")
+  commentText     String       @map("comment_text")
+  embedding       Unsupported("vector(1536)")?
+  githubCommentId BigInt?      @unique @map("github_comment_id")
+  feedback        FeedbackType?
+  feedbackWeight  Float        @default(0.5) @map("feedback_weight")
+  createdAt       DateTime     @default(now()) @map("created_at")
 
   @@map("review_comments")
 }

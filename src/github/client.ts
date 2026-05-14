@@ -82,8 +82,8 @@ export async function postInlineComment(
   path: string,
   line: number,
   body: string
-): Promise<void> {
-  await octokit.pulls.createReviewComment({
+): Promise<number> {
+  const { data } = await octokit.pulls.createReviewComment({
     owner,
     repo,
     pull_number: prNumber,
@@ -92,6 +92,7 @@ export async function postInlineComment(
     line,
     body,
   });
+  return data.id;
 }
 
 export async function postPrReview(

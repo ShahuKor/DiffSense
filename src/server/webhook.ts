@@ -5,6 +5,7 @@ import { GITHUB_EVENTS, PULL_REQUEST_ACTIONS, REVIEW_QUEUE_NAME } from '../share
 import { PrReviewJobPayload } from '../shared/types';
 import { logger } from '../shared/logger';
 import { getRedisConnection } from '../worker/index';
+import { updateCommentFeedback } from '../rag/embed';
 
 function verifySignature(secret: string, payload: Buffer, signature: string): boolean {
   const expected = `sha256=${crypto.createHmac('sha256', secret).update(payload).digest('hex')}`;
@@ -47,6 +48,8 @@ export async function webhookHandler(req: Request, res: Response): Promise<void>
     await handlePullRequestEvent(payload);
   } else if (event === GITHUB_EVENTS.PR_REVIEW_COMMENT) {
     await handleReviewCommentEvent(payload);
+  } else if (event === GITHUB_EVENTS.PR_REVIEW_THREAD) {
+    await handleReviewThreadEvent(payload);
   } else {
     logger.debug('Ignoring unhandled event', { event });
   }
@@ -83,7 +86,26 @@ async function handlePullRequestEvent(payload: Record<string, unknown>): Promise
 async function handleReviewCommentEvent(payload: Record<string, unknown>): Promise<void> {
   const action = payload['action'] as string;
   if (action !== 'created') return;
-
-  // TODO (Week 6): record feedback signal for dismissed/resolved comments
   logger.debug('Review comment event received', { action });
+}
+
+async function handleReviewThreadEvent(payload: Record<string, unknown>): Promise<void> {
+  const action = payload['action'] as string;
+  if (action !== 'resolved' && action !== 'unresolved') return;
+
+  const thread = payload['thread'] as Record<string, unknown>;
+  const comments = thread['comments'] as Record<string, unknown>[];
+
+  if (!comments?.length) return;
+
+  // resolved = developer acted on the feedback (positive signal)
+  // unresolved = developer re-opened the thread (negative signal)
+  const feedback = action === 'resolved' ? 'accepted' : 'dismissed';
+
+  for (const comment of comments) {
+    const commentId = comment['id'] as number;
+    await updateCommentFeedback(commentId, feedback);
+  }
+
+  logger.info('Processed review thread feedback', { action, commentCount: comments.length });
 }
