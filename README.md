@@ -1,4 +1,4 @@
-# ReviewBot
+# DiffSense
 
 A self-hostable GitHub App that automatically reviews Pull Requests using Claude AI. It reads your actual codebase, fetches relevant context, and posts structured inline comments — and it learns from your team's feedback over time.
 
@@ -6,7 +6,7 @@ A self-hostable GitHub App that automatically reviews Pull Requests using Claude
 
 ## How it works
 
-When a PR is opened or updated, ReviewBot runs a multi-step agentic review:
+When a PR is opened or updated, DiffSense runs a multi-step agentic review:
 
 ```
 GitHub PR event
@@ -101,8 +101,8 @@ On subsequent PRs, `search_reviews` ranks past comments by cosine similarity wei
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/your-username/reviewbot
-cd reviewbot
+git clone https://github.com/your-username/DiffSense
+cd DiffSense
 pnpm install
 ```
 
@@ -112,7 +112,7 @@ Go to **GitHub → Settings → Developer settings → GitHub Apps → New GitHu
 
 | Field | Value |
 |---|---|
-| App name | `ReviewBot` (must be globally unique) |
+| App name | `DiffSense` (must be globally unique) |
 | Homepage URL | Your server URL (or `http://localhost:3000` for local dev) |
 | Webhook URL | `https://your-domain.com/webhook` |
 | Webhook secret | Any random string — save it |
@@ -153,7 +153,7 @@ GITHUB_WEBHOOK_SECRET=your_webhook_secret
 ANTHROPIC_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...
 
-DATABASE_URL=postgresql://reviewbot:reviewbot@localhost:5433/reviewbot
+DATABASE_URL=postgresql://DiffSense:DiffSense@localhost:5433/DiffSense
 REDIS_URL=redis://localhost:6379
 
 PORT=3000
